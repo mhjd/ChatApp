@@ -23,11 +23,18 @@
 
 .message {
   padding: 12px 16px;
-  background-color: #f5f5f5;
   border-radius: 8px;
   width: 100%;
   word-wrap: break-word;
   white-space: pre-wrap;
+}
+
+.userMessage {
+  background-color: #f5f5f5;
+}
+
+.botMessage {
+  background-color: #e3f2fd;
 }
 
 .promptInput {

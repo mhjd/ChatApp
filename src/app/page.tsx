@@ -21,8 +21,11 @@ function ListOfMessages({ messages }) {
    return (
       <div style={{ width: '100%' }}>
          {messages.map((message, index) => (
-            <div key={index} className={styles.message}>
-               {message}
+            <div 
+               key={index} 
+               className={`${styles.message} ${message.isBot ? styles.botMessage : styles.userMessage}`}
+            >
+               {message.text}
             </div>
          ))}
          <div ref={messagesEndRef} />
@@ -67,7 +70,11 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
 
   const handleSendMessage = (message) => {
-    setMessages([...messages, message]);
+    setMessages([
+      ...messages, 
+      { text: message, isBot: false },
+      { text: "Hello world!!!!", isBot: true }
+    ]);
   };
 
   return (
