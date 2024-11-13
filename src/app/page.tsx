@@ -1,18 +1,41 @@
 'use client'
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import React from "react";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import styles from "./page.module.css";
 
-function PromptInput(){
-   const [listOfmessages, setListOfmessages] = useState([]);
+function ListOfMessages({ messages }) {
+   const messagesEndRef = React.useRef(null);
+
+   const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+   };
+
+   React.useEffect(() => {
+      scrollToBottom();
+   }, [messages]);
+
+   return (
+      <div style={{ width: '100%' }}>
+         {messages.map((message, index) => (
+            <div key={index} className={styles.message}>
+               {message}
+            </div>
+         ))}
+         <div ref={messagesEndRef} />
+      </div>
+   )
+}
+
+function PromptInput({ onSendMessage }) {
    const [inputText, setInputText] = useState("");
 
    const handleSubmit = () => {
       if (inputText.trim()) {
-         setListOfmessages([...listOfmessages, inputText]);
+         onSendMessage(inputText);
          setInputText("");
       }
    };
@@ -41,11 +64,18 @@ function PromptInput(){
    )
 }
 export default function Home() {
+  const [messages, setMessages] = useState([]);
+
+  const handleSendMessage = (message) => {
+    setMessages([...messages, message]);
+  };
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
+        <ListOfMessages messages={messages} />
       </main>
-      <PromptInput />
+      <PromptInput onSendMessage={handleSendMessage} />
     </div>
   );
 }
