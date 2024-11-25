@@ -1,25 +1,32 @@
 'use client'
-import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import styles from "./page.module.css";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 
-function ListOfMessages({ messages }) {
-    const messagesEndRef = React.useRef(null);
-    const containerRef = React.useRef(null);
+type ChatMessage = {
+  text: string;
+  isBot: boolean;
+}
+interface ListOfMessagesProps {
+    messages: ChatMessage[];
+}
+function ListOfMessages({ messages }: ListOfMessagesProps) {
+    const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
 
     const scrollToBottom = () => {
         // Check if user was already at bottom before adding new message
-        const container = containerRef.current;
-        const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
-        
-        if (isAtBottom) {
-				messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
+		  const container = containerRef.current;
+		  if (container != null){
+				const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
+				if (isAtBottom) {
+					 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+				}
+		  }
     };
 
     React.useEffect(() => {
@@ -41,7 +48,7 @@ function ListOfMessages({ messages }) {
     )
 }
 
-function PromptInput({ onSendMessage }) {
+function PromptInput({ onSendMessage } : { onSendMessage: (message: string) => void }) {
     const [inputText, setInputText] = useState("");
 
     const handleSubmit = () => {
@@ -76,34 +83,38 @@ function PromptInput({ onSendMessage }) {
     )
 }
 
+type Model = {
+  id: string;
+  name: string;
+};
+
+
 function ModelsMenu() {
   const [model, setModel] = useState('mistral-large-latest');
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchModels = async () => {
       try {
         const response = await fetch('/api/mistral_api');
         const data = await response.json();
-        setModels(data.models);
         setLoading(false);
+		  setModels(data.models);
       } catch (err) {
-        setError('Failed to fetch models');
-        setLoading(false);
+		  console.error('Error:', err);
+		  return 'An error occurred.';
       }
     };
 
     fetchModels();
   }, []); // Empty dependency array means this runs once on mount
 
-  const handleChange = (event: any) => {
+  const handleChange = (event : SelectChangeEvent<string>) => {
     setModel(event.target.value);
   };
 
   if (loading) return <div>Loading models...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   return (
     <FormControl margin="dense" size="medium" sx={{ maxWidth: 200 }}>
@@ -128,9 +139,9 @@ function ModelsMenu() {
 
 
 export default function Home() {
-	 const [messages, setMessages] = useState([]);
-	 const [history, setHistory] = useState([]);
-	 const [currentChatIndex, setCurrentChatIndex] = useState(null);
+	 const [messages, setMessages] = useState<ChatMessage[]>([]);
+	 const [history, setHistory] = useState<{messages: ChatMessage[], title: string}[]>([]);
+	 const [currentChatIndex, setCurrentChatIndex] = useState<number | null>(null);
 	 const [newChat, setNewChat] = useState(true);
 	 const handleNewChat = () => {
 		  if (messages.length > 0 && newChat) {
@@ -142,19 +153,19 @@ export default function Home() {
 		  setCurrentChatIndex(null);
 	 };
 
-	 const handleChatSelect = (index) => {
+	 const handleChatSelect = (index: number) => {
 		  setMessages(history[index].messages);
 		  setNewChat(false);
 		  setCurrentChatIndex(index);
 	 };
 
-	 const handleSendMessage = async (message) => {
+	 const handleSendMessage = async (message: string) => {
 
-		  let all_messages = [
+		  const all_messages = [
 				...messages, 
 				{ text: message, isBot: false }
 		  ];
-		  let string_with_all_messages = all_messages.map(message => {
+		  const string_with_all_messages = all_messages.map(message => {
 				return message.isBot ? `Chatbot: ${message.text}` : `User: ${message.text}`;
 		  }).join("\n");
 		  
@@ -182,7 +193,6 @@ export default function Home() {
 				]);
 		  } catch (error) {
 				console.error('Error:', error);
-				return 'An error occurred. Please try again later.';
 		  }
 	 };
 
