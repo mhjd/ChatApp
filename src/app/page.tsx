@@ -169,7 +169,13 @@ export default function Home() {
 	 const handleChatSelect = (index: number) => {
 		  setMessages(history[index].messages);
 		  setNewChat(false);
-		  setCurrentChatIndex(index);
+		  if (messages.length > 0 && newChat) {
+				const newChatTitle = `Chat n°${history.length + 1}`;
+				setHistory([{ messages, title: newChatTitle }, ...history]);
+				setCurrentChatIndex(index + 1);
+		  } else {
+				setCurrentChatIndex(index);
+		  } 
 	 };
 
 	 const handleSendMessage = async (message: string) => {
