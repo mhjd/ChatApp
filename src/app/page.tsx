@@ -134,7 +134,7 @@ export default function Home() {
 	 const [newChat, setNewChat] = useState(true);
 	 const handleNewChat = () => {
 		  if (messages.length > 0 && newChat) {
-				const newChatTitle = `${history.length + 1} This is a generic name that's extremely long to see if, as intended, all the title isn't displayed`;
+				const newChatTitle = `Chat n°${history.length + 1}`;
 				setHistory([{ messages, title: newChatTitle }, ...history]);
 		  }
 		  setMessages([]);
@@ -150,17 +150,25 @@ export default function Home() {
 
 	 const handleSendMessage = async (message) => {
 
-		  setMessages([
+		  let all_messages = [
 				...messages, 
 				{ text: message, isBot: false }
-		  ]);
+		  ];
+		  let string_with_all_messages = all_messages.map(message => {
+				return message.isBot ? `Chatbot: ${message.text}` : `User: ${message.text}`;
+		  }).join("\n");
+		  
+		  setMessages(all_messages);
+
+
+
 		  try {
 				const response = await fetch('/api/mistral_api', {
 					 method: 'POST',
 					 headers: {
 						  'Content-Type': 'application/json',
 					 },
-					 body: JSON.stringify({ messages: [{ role: 'user', content: message }] }),
+					 body: JSON.stringify({ messages: [{ role: 'user', content: string_with_all_messages }] }),
 				});
 
 				if (!response.ok) {
