@@ -90,45 +90,58 @@ type Model = {
 
 
 function ModelsMenu() {
-  const [model, setModel] = useState('mistral-large-latest');
-  const [models, setModels] = useState<Model[]>([]);
-  const [loading, setLoading] = useState(true);
+  const defaultModel = { id: 'mistral-large-latest', name: 'Mistral Large' };
+  const [model, setModel] = useState(defaultModel.id);
+  const [models, setModels] = useState<Model[]>([defaultModel]);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchModels = async () => {
       try {
         const response = await fetch('/api/mistral_api');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch models');
+        }
         const data = await response.json();
-        setLoading(false);
-		  setModels(data.models);
+        
+        if (mounted && data?.models && Array.isArray(data.models) && data.models.length > 0) {
+          setModels(data.models);
+        }
       } catch (err) {
-		  console.error('Error:', err);
-		  return 'An error occurred.';
+        console.error('Error fetching models:', err);
+        // Fallback to default model on error
+        if (mounted) {
+          setModels([defaultModel]);
+        }
       }
     };
 
     fetchModels();
-  }, []); // Empty dependency array means this runs once on mount
 
-  const handleChange = (event : SelectChangeEvent<string>) => {
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleChange = (event: SelectChangeEvent<string>) => {
     setModel(event.target.value);
   };
-
-  if (loading) return <div>Loading models...</div>;
 
   return (
     <FormControl margin="dense" size="medium" sx={{ maxWidth: 200 }}>
       <InputLabel>Model</InputLabel>
       <Select
-        labelId="demo-simple-select-label"
-        id="demo-simple-select"
+        labelId="model-select-label"
+        id="model-select"
         value={model}
         label="Model"
         onChange={handleChange}
       >
-        {models.map((model) => (
-          <MenuItem key={model.id} value={model.id}>
-            {model.name}
+        {models.map((m) => (
+          <MenuItem key={m.id} value={m.id}>
+            {m.name}
           </MenuItem>
         ))}
       </Select>
