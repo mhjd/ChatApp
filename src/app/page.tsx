@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import styles from "./page.module.css";
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 function ListOfMessages({ messages }) {
     const messagesEndRef = React.useRef(null);
@@ -74,6 +75,58 @@ function PromptInput({ onSendMessage }) {
 				</div>
     )
 }
+
+function ModelsMenu() {
+  const [model, setModel] = useState('mistral-large-latest');
+  const [models, setModels] = useState<Model[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch('/api/mistral_api');
+        const data = await response.json();
+        setModels(data.models);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch models');
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []); // Empty dependency array means this runs once on mount
+
+  const handleChange = (event: any) => {
+    setModel(event.target.value);
+  };
+
+  if (loading) return <div>Loading models...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <FormControl margin="dense" size="medium" sx={{ maxWidth: 200 }}>
+      <InputLabel>Model</InputLabel>
+      <Select
+        labelId="demo-simple-select-label"
+        id="demo-simple-select"
+        value={model}
+        label="Model"
+        onChange={handleChange}
+      >
+        {models.map((model) => (
+          <MenuItem key={model.id} value={model.id}>
+            {model.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+
+
 export default function Home() {
 	 const [messages, setMessages] = useState([]);
 	 const [history, setHistory] = useState([]);
@@ -148,6 +201,7 @@ export default function Home() {
         </div>
 				</div>
 				<div className={styles.chatContent}>
+				<ModelsMenu />
 				<main className={styles.main}>
 				<ListOfMessages messages={messages} />
 				</main>
