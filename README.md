@@ -1,5 +1,6 @@
 ## Access the Application
 The project is accessible at [this address](https://chat-app-internship.vercel.app/).
+Please Wait a little bit for the loading of the models. 
 
 ## Run the Project
 Run:
